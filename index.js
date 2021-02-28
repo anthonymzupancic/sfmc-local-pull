@@ -7,6 +7,7 @@ const fs = require('fs');
 
 require('dotenv').config()
 
+
 const authCreds = {
   "client_id": process.env.CLIENT_ID, 
   "client_secret": process.env.CLIENT_SECRET,
@@ -20,7 +21,12 @@ const authCreds = {
 
   const sourceFolderID = ""
 
+  let d = new Date();
+  var datestring = d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+  console.log(datestring)
 
+  let dirRoot = "./" + d.getFullYear() + "/" + datestring
+ 
   //Authenticate API Calls
    auth(authCreds)
   .then((authRes)=> {
@@ -43,14 +49,49 @@ const authCreds = {
               console.log(item.id)
 
             let data = JSON.stringify(item, null, 2);
-            let fileName = `${item.id} - ${item.name}`
+            let assetType = item.assetType.displayName;
+            let fileName = item.name
 
-            //Write data to new file
-            //fileName => ##### - AssetName
-            fs.writeFile(fileName, data, (err) => {
-                if (err) throw err;
-                console.log('Data written to file');
-            });
+            //Create JSON structure for new asset post
+            let post = {};
+            post.name = item.name
+            post.assetType = item.assetType;
+            post.categoryID = item.category;
+
+            if (post.content) {post.content = item.content};
+            if (item.meta) {post.meta = item.meta}
+            if (item.slots) {post.slots = item.slots}
+            if (item.views) {post.views = item.views}
+
+
+            let postData = JSON.stringify(post, null, 2) 
+
+
+            //Create folder directory
+            fs.mkdir(dirRoot + "/" + assetType + "/" + fileName, { recursive: true }, function(err) {
+              if (err) {
+                console.log(err)
+              } else {
+                console.log("New directory successfully created.")
+              }
+            })
+
+
+            setTimeout(()=>{
+              //Write data to new file
+              //fileName => ##### - AssetName
+              fs.writeFile(dirRoot + "/" + assetType + "/" + fileName + "/" + fileName, data, (err) => {
+                  if (err) console.log(err);
+                  console.log('Data written to file');
+              });
+
+
+              fs.writeFile(dirRoot + "/" + assetType + "/" + fileName + "/" + "post_" + fileName, postData, (err) => {
+                  if (err) console.log(err);
+                  console.log('Data written to post file');
+              });
+            },200)
+            
 
           })
 
@@ -62,25 +103,17 @@ const authCreds = {
   })
 
 
-
  async function auth(creds) {
-
   let authURL = process.env.AUTH_URL
 
-  const response = await axios.post(authURL, creds)
+  const response =  await axios.post(authURL, creds)
   return response.data
   }
 
 
-  async function getAssets(restBase, config, sourceFolderID) {
+  async function getAssets(restBase, config, categoryID) {
     
-      //If sourceFolderID provided filter request based on folder else pull from unfiltered assets
-      let assetsEndpoint = (typeof sourceFolderID !== 'undefined' || sourceFolderID !== "") ? 
-        `${restBase}/asset/v1/content/assets?$filter=category.id=${sourceFolderID}` 
-        : `${restBase}/asset/v1/content/assets`
-    
-    
-    const assets = await axios.get(assetsEndpoint, config)
+    const assets = await axios.get(restBase + '/asset/v1/content/assets?$filter=category.id=' + categoryID, config)
     return assets
   }
 
