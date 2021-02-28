@@ -58,7 +58,7 @@ const authCreds = {
             post.assetType = item.assetType;
             post.categoryID = item.category;
 
-            if (post.content) {post.content = item.content};
+            if (item.content) {post.content = item.content};
             if (item.meta) {post.meta = item.meta}
             if (item.slots) {post.slots = item.slots}
             if (item.views) {post.views = item.views}
