@@ -56,7 +56,7 @@ const authCreds = {
             let post = {};
             post.name = item.name
             post.assetType = item.assetType;
-            post.categoryID = item.category;
+            post.category = item.category;
 
             if (item.content) {post.content = item.content};
             if (item.meta) {post.meta = item.meta}
@@ -65,7 +65,6 @@ const authCreds = {
 
 
             let postData = JSON.stringify(post, null, 2) 
-
 
             //Create folder directory
             fs.mkdir(dirRoot + "/" + assetType + "/" + fileName, { recursive: true }, function(err) {
@@ -80,13 +79,13 @@ const authCreds = {
             setTimeout(()=>{
               //Write data to new file
               //fileName => ##### - AssetName
-              fs.writeFile(dirRoot + "/" + assetType + "/" + fileName + "/" + fileName, data, (err) => {
+              fs.writeFile(dirRoot + "/" + assetType + "/" + fileName + "/" + fileName + ".json", data, (err) => {
                   if (err) console.log(err);
                   console.log('Data written to file');
               });
 
-
-              fs.writeFile(dirRoot + "/" + assetType + "/" + fileName + "/" + "post_" + fileName, postData, (err) => {
+              //Write JSON file for API post
+              fs.writeFile(dirRoot + "/" + assetType + "/" + fileName + "/" + "post_" + fileName + ".json", postData, (err) => {
                   if (err) console.log(err);
                   console.log('Data written to post file');
               });
@@ -101,6 +100,7 @@ const authCreds = {
   .catch((err) => {
     console.log(err)
   })
+
 
 
  async function auth(creds) {
